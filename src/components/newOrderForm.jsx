@@ -16,42 +16,51 @@ const NewOrderForm = React.createClass({
         return {
             restaurant: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             deadline: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             deliveryTime: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             menu: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             description: {
                 text: ''
             },
             password: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             passwordRepeat: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             author: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             deliveryCost: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             },
             extraCostPerMeal: {
                 text: '',
-                isValid: true
+                isValid: true,
+                isDirty: false
             }
         };
     },
@@ -60,7 +69,8 @@ const NewOrderForm = React.createClass({
         this.setState(oldState => {
             oldState[id] = {
                 text: value,
-                isValid: isValid
+                isValid: isValid,
+                isDirty: true
             };
         });
     },
@@ -115,8 +125,39 @@ const NewOrderForm = React.createClass({
     },
 
     handleSubmit () {
-        this.props.dispatch(addNewOrder(mapOrderStateToOrder(this.state)));
-        browserHistory.push('/');
+        if (this.validateEntireForm()) {
+            this.props.dispatch(addNewOrder(mapOrderStateToOrder(this.state)));
+            browserHistory.push('/');
+        }
+    },
+
+    validateEntireForm () {
+        let isFormValid = true;
+
+        for (let propertyName in this.state) {
+            if ({}.hasOwnProperty.call(this.state, propertyName)) {
+                const property = this.state[propertyName];
+                if (property.isValid === true && !property.isDirty) {
+                    this.invalidateProperty(propertyName);
+                    isFormValid = false;
+                }
+                if (property.isValid === false) {
+                    isFormValid = false;
+                }
+            }
+        }
+
+        return isFormValid;
+    },
+
+    invalidateProperty (propertyName) {
+        this.setState(oldState => {
+            oldState[propertyName] = {
+                isValid: false,
+                isDirty: oldState[propertyName].isDirty,
+                text: oldState[propertyName].text
+            };
+        });
     },
 
     render () {

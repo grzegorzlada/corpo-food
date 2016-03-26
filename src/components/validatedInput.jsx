@@ -17,9 +17,9 @@ const ValidatedInput = React.createClass({
     },
 
     validationBsStyle () {
-        const {text, isValid} = this.props.value;
+        const {isValid, isDirty} = this.props.value;
 
-        if (!text) {
+        if (isValid && !isDirty) {
             return null;
         }
 

@@ -9,7 +9,8 @@ import {mapOrderStateToOrder} from './orderMapper';
 
 const NewOrderForm = React.createClass({
     propTypes: {
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: React.PropTypes.func.isRequired,
+        resources: React.PropTypes.object.isRequired
     },
 
     getInitialState () {
@@ -24,7 +25,8 @@ const NewOrderForm = React.createClass({
                 text: '',
                 isValid: true,
                 isDirty: false,
-                validator: validateHour
+                validator: validateHour,
+                required: true
             },
             deliveryTime: {
                 text: '',
@@ -46,12 +48,16 @@ const NewOrderForm = React.createClass({
             password: {
                 text: '',
                 isValid: true,
-                isDirty: false
+                isDirty: false,
+                validator: this.validatePassword,
+                required: true
             },
             passwordRepeat: {
                 text: '',
                 isValid: true,
-                isDirty: false
+                isDirty: false,
+                validator: this.validateConfirmPassword,
+                required: true
             },
             author: {
                 text: '',
@@ -75,7 +81,6 @@ const NewOrderForm = React.createClass({
         };
     },
 
-
     handleSubmit () {
         if (this.validateEntireForm()) {
             this.props.dispatch(addNewOrder(mapOrderStateToOrder(this.state)));
@@ -90,7 +95,7 @@ const NewOrderForm = React.createClass({
             if ({}.hasOwnProperty.call(this.state, propertyName)) {
                 const property = this.state[propertyName];
                 if (property.isValid === true && !property.isDirty) {
-                    this.invalidateProperty(propertyName);
+                    this.revalidateField(propertyName);
                     isFormValid = false;
                 }
                 if (property.isValid === false) {
@@ -102,32 +107,36 @@ const NewOrderForm = React.createClass({
         return isFormValid;
     },
 
-    invalidateProperty (propertyName) {
+    revalidateField (fieldName) {
         this.setState(oldState => {
-            oldState[propertyName] = {
-                isValid: false,
-                isDirty: oldState[propertyName].isDirty,
-                text: oldState[propertyName].text,
-                validator: oldState[propertyName].validator,
-                required: oldState[propertyName].required
+            oldState[fieldName] = {
+                isValid: this.validateField(fieldName, oldState[fieldName].text),
+                isDirty: oldState[fieldName].isDirty,
+                text: oldState[fieldName].text,
+                validator: oldState[fieldName].validator,
+                required: oldState[fieldName].required
             };
         });
     },
 
-    handleFieldChange (event, forcedValidState) {
-        const value = event.target.value;
-        const id = event.target.id;
+    validateField (id, value) {
+        let isValid = true;
         const isFilled = validateMinimalLength(value, 1);
-        const isForcedValidState = typeof forcedValidState !== 'undefined';
-        let isValid = isForcedValidState ? forcedValidState : true;
-
-        if (!isForcedValidState && this.state[id].required === true) {
+        if (this.state[id].required === true) {
             isValid = isFilled;
         }
 
-        if (!isForcedValidState && isFilled && typeof this.state[id].validator === 'function') {
+        if (isFilled && typeof this.state[id].validator === 'function') {
             isValid = this.state[id].validator(value);
         }
+
+        return isValid;
+    },
+
+    handleFieldChange (event) {
+        const value = event.target.value;
+        const id = event.target.id;
+        const isValid = this.validateField(id, value);
 
         this.setState(oldState => {
             oldState[id] = {
@@ -140,12 +149,12 @@ const NewOrderForm = React.createClass({
         });
     },
 
-    handlePasswordChange (event) {
-        this.handleFieldChange(event, validateMinimalLength(event.target.value, 6));
+    validatePassword (value) {
+        return validateMinimalLength(value, 6);
     },
 
-    handleConfirmPasswordChange (event) {
-        this.handleFieldChange(event, event.target.value === this.state.password.text);
+    validateConfirmPassword (value) {
+        return value === this.state.password.text;
     },
 
     render () {
@@ -155,90 +164,92 @@ const NewOrderForm = React.createClass({
                     <form>
                         <ValidatedInput
                             id="restaurant"
-                            label="Lokal"
+                            label={this.props.resources.restaurant}
                             onChange={this.handleFieldChange}
-                            placeholder="Lokal"
+                            placeholder={this.props.resources.restaurant}
                             type="text"
-                            validationMessage="Proszę podać lokal"
+                            validationMessage={this.props.resources.validationMessages.provideRestaurant}
                             value={this.state.restaurant}
                         />
                         <ValidatedInput
                             id="deadline"
-                            label="Zamawiam o"
+                            label={this.props.resources.orderingAt}
                             onChange={this.handleFieldChange}
-                            placeholder="O ktorej zamawiasz"
-                            validationMessage="Podaj poprawna godzinę"
+                            placeholder={this.props.resources.orderingAt}
+                            type="text"
+                            validationMessage={this.props.resources.validationMessages.provideValidHour}
                             value={this.state.deadline}
                         />
                         <ValidatedInput
                             id="deliveryTime"
-                            label="Zamawiam na"
+                            label={this.props.resources.deliveryAt}
                             onChange={this.handleFieldChange}
-                            placeholder="Zamawiam na"
-                            validationMessage="Podaj poprawna godzinę"
+                            placeholder={this.props.resources.deliveryAt}
+                            type="text"
+                            validationMessage={this.props.resources.validationMessages.provideValidHour}
                             value={this.state.deliveryTime}
                         />
                         <ValidatedInput
                             id="menu"
-                            label="Menu"
+                            label={this.props.resources.menu}
                             onChange={this.handleFieldChange}
-                            placeholder="Menu"
+                            placeholder={this.props.resources.menu}
                             type="text"
-                            validationMessage="Proszę podać odnośnik do menu"
+                            validationMessage={this.props.resources.validationMessages.provideMenuLink}
                             value={this.state.menu}
                         />
                         <Input
                             id="description"
-                            label="Opis"
+                            label={this.props.resources.description}
                             onChange={this.handleFieldChange}
-                            placeholder="Opis"
+                            placeholder={this.props.resources.description}
                             type="textarea"
                         />
                         <ValidatedInput
                             id="password"
-                            label="Hasło administracyjne"
-                            onChange={this.handlePasswordChange}
-                            placeholder="Hasło administracyjne"
+                            label={this.props.resources.password}
+                            onChange={this.handleFieldChange}
+                            placeholder={this.props.resources.password}
                             type="password"
-                            validationMessage="Minimalna długość hasła wynosi 6 znakow"
+                            validationMessage={this.props.resources.validationMessages.passwordTooShort}
                             value={this.state.password}
                         />
                         <ValidatedInput
                             id="passwordRepeat"
-                            label="Powtorz hasło"
-                            onChange={this.handleConfirmPasswordChange}
-                            placeholder="Powtorz hasło"
+                            label={this.props.resources.passwordAgain}
+                            onChange={this.handleFieldChange}
+                            placeholder={this.props.resources.passwordAgain}
                             type="password"
-                            validationMessage="Hasla nie sa takie same"
+                            validationMessage={this.props.resources.validationMessages.passwordsDontMatch}
                             value={this.state.passwordRepeat}
                         />
                         <ValidatedInput
                             id="author"
-                            label="Autor"
+                            label={this.props.resources.author}
                             onChange={this.handleFieldChange}
-                            placeholder="Adres e-mail"
+                            placeholder={this.props.resources.author}
                             type="text"
-                            validationMessage="Proszę podać autora zamowienia"
+                            validationMessage={this.props.resources.validationMessages.provideAuthor}
                             value={this.state.author}
                         />
                         <ValidatedInput
-                            addonAfter="zł"
+                            addonAfter={this.props.resources.currency}
                             id="deliveryCost"
-                            label="Koszt dowozu"
+                            label={this.props.resources.deliveryCost}
                             onChange={this.handleFieldChange}
-                            placeholder="Koszt dowozu"
+                            placeholder={this.props.resources.deliveryCost}
                             type="text"
-                            validationMessage="Podaj poprawny koszt dostawy"
+                            validationMessage={this.props.resources.validationMessages.provideValidDeliveryCost}
                             value={this.state.deliveryCost}
                         />
                         <ValidatedInput
-                            addonAfter="zł"
+                            addonAfter={this.props.resources.currency}
                             id="extraCostPerMeal"
-                            label="Do każdego zamowienia"
+                            label={this.props.resources.extraCostPerMeal}
                             onChange={this.handleFieldChange}
-                            placeholder="PLN"
+                            placeholder={this.props.resources.extraCostPerMeal}
                             type="text"
-                            validationMessage="Podaj poprawny koszt do kazdego zamowienia"
+                            validationMessage={this.props.resources.validationMessages.provideValidExtraCostPerMeal}
                             value={this.state.extraCostPerMeal}
                         />
                         <Button onClick={this.handleSubmit} type="button">
@@ -251,4 +262,4 @@ const NewOrderForm = React.createClass({
     }
 });
 
-export default connect()(NewOrderForm);
+export default connect(state => ({resources: state.localization.resources.newOrderForm}))(NewOrderForm);

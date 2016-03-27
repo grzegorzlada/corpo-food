@@ -1,8 +1,9 @@
-var bcrypt = require('bcrypt-nodejs');
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const bcrypt = require('bcrypt-nodejs');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const mealSchema = require('./meal').mealSchema;
 
-var orderSchema = new Schema({
+const orderSchema = new Schema({
     deadline: {
         type: Date,
         deafult: Date.now(),
@@ -44,20 +45,7 @@ var orderSchema = new Schema({
         default: 0
     },
     state: String,
-    meals: [{
-        name: {
-            type: String,
-            required: [true, 'Podaj nazwę dania!']
-        },
-        hungryGuy: {
-            type: String,
-            required: [true, 'Podaj swoje imię.']
-        },
-        cost: {
-            type: Number,
-            required: [0, 'Podaj cenę dania!']
-        }
-    }]
+    meals: [{ref: mealSchema}]
 });
 
 function generateHash (password) {

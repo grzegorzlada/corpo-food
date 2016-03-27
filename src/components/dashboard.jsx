@@ -8,7 +8,8 @@ import {hydrateOrders} from '../store/ordersActions';
 const Dashboard = React.createClass({
     propTypes: {
         dispatch: React.PropTypes.func.isRequired,
-        orders: React.PropTypes.array.isRequired
+        orders: React.PropTypes.array.isRequired,
+        resources: React.PropTypes.object.isRequired
     },
 
     componentDidMount () {
@@ -44,14 +45,14 @@ const Dashboard = React.createClass({
     render () {
         const noOrdersYet = this.props.orders.length
             ? null
-            : <Alert bsStyle="warning">Nikt jeszcze nie sfokusował się na czelendża - bądź pierwszy</Alert>;
+            : <Alert bsStyle="warning">{this.props.resources.noOrdersYet}</Alert>;
 
         return (
             <div className="Dashboard">
                 <Row>
                     <Col xs={12}>
                         <Link className="add-order-cta" to={'/newOrder'}>
-                            <Button block bsSize="large" bsStyle="success">DODAJ ORDER</Button>
+                            <Button block bsSize="large" bsStyle="success">{this.props.resources.addOrder}</Button>
                         </Link>
                     </Col>
                 </Row>
@@ -65,7 +66,10 @@ const Dashboard = React.createClass({
 });
 
 const ConnectedDashboard = connect(
-    state => ({orders: state.orders})
+    state => ({
+        orders: state.orders,
+        resources: state.localization.resources.dashboard
+    })
 )(Dashboard);
 
 export default ConnectedDashboard;

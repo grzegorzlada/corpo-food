@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "node ./src/server.js",
-    "watch": "webpack --progress --colors --watch"
+    "start": "node --harmony_destructuring ./src/server.js",
+    "watch": "webpack --colors --watch"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
     "http-status": "^0.2.0",
+    "locale": "0.0.21",
     "mongoose": "^4.4.8",
     "react": "^0.14.7",
     "react-bootstrap": "^0.28.3",

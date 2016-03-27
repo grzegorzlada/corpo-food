@@ -91,12 +91,15 @@ const NewOrderForm = React.createClass({
     validateEntireForm () {
         let isFormValid = true;
 
-        for (let propertyName in this.state) {
-            if ({}.hasOwnProperty.call(this.state, propertyName)) {
-                const property = this.state[propertyName];
-                if (property.isValid === true && !property.isDirty) {
-                    this.revalidateField(propertyName);
-                    isFormValid = false;
+        for (let fieldName in this.state) {
+            if ({}.hasOwnProperty.call(this.state, fieldName)) {
+                const property = this.state[fieldName];
+                if (property.isValid === true) {
+                    const isValid = this.validateField(fieldName, property.text);
+                    this.setFieldProperties(fieldName, isValid, property.isDirty, property.text, property.validator, property.required);
+                    if (!isValid) {
+                        isFormValid = false;
+                    }
                 }
                 if (property.isValid === false) {
                     isFormValid = false;
@@ -107,14 +110,14 @@ const NewOrderForm = React.createClass({
         return isFormValid;
     },
 
-    revalidateField (fieldName) {
+    setFieldProperties (fieldName, isValid, isDirty, text, validator, required) {
         this.setState(oldState => {
             oldState[fieldName] = {
-                isValid: this.validateField(fieldName, oldState[fieldName].text),
-                isDirty: oldState[fieldName].isDirty,
-                text: oldState[fieldName].text,
-                validator: oldState[fieldName].validator,
-                required: oldState[fieldName].required
+                isValid: isValid,
+                isDirty: isDirty,
+                text: text,
+                validator: validator,
+                required: required
             };
         });
     },
@@ -138,15 +141,7 @@ const NewOrderForm = React.createClass({
         const id = event.target.id;
         const isValid = this.validateField(id, value);
 
-        this.setState(oldState => {
-            oldState[id] = {
-                text: value,
-                isValid: isValid,
-                isDirty: true,
-                validator: oldState[id].validator,
-                required: oldState[id].required
-            };
-        });
+        this.setFieldProperties(id, isValid, true, value, this.state[id].validator, this.state[id].required);
     },
 
     validatePassword (value) {
